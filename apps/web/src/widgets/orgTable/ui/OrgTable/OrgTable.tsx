@@ -2,15 +2,10 @@ import { type FC, type KeyboardEvent, useRef, useState } from 'react'
 import styled from 'styled-components'
 
 import type { OrgNodeAggregates, OrgTreeNode } from '@/entities/orgNode'
-import { formatCount, useDebouncedValue } from '@/shared/lib'
-import { TextField } from '@/shared/ui'
+import { OrgSearchField, useOrgSearch } from '@/features/orgSearch'
+import { formatCount } from '@/shared/lib'
 import { useOrgTableRows } from '@/widgets/orgTable/hooks'
-import {
-  ORG_TABLE_COLUMNS,
-  ORG_TABLE_FILTER_DEBOUNCE_MS,
-  type OrgTableSort,
-  type OrgTableSortKey,
-} from '@/widgets/orgTable/model'
+import { ORG_TABLE_COLUMNS, type OrgTableSort, type OrgTableSortKey } from '@/widgets/orgTable/model'
 import { OrgTableRow } from '@/widgets/orgTable/ui/OrgTableRow'
 
 const Wrapper = styled.div`
@@ -22,7 +17,7 @@ const Wrapper = styled.div`
 
 const Toolbar = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: ${({ theme }) => theme.space(3)};
   padding: ${({ theme }) => theme.space(3)};
   border-bottom: 1px solid ${({ theme }) => theme.color.border};
@@ -102,14 +97,13 @@ type Props = {
 }
 
 export const OrgTable: FC<Props> = ({ nodes, aggregates, selectedId, liveUpdatedIds, onSelect }) => {
-  const [search, setSearch] = useState('')
   const [sort, setSort] = useState<OrgTableSort | null>(null)
   const [focusedIndex, setFocusedIndex] = useState(0)
 
   const rowElements = useRef(new Map<string, HTMLTableRowElement>())
 
-  const debouncedSearch = useDebouncedValue(search, ORG_TABLE_FILTER_DEBOUNCE_MS)
-  const rows = useOrgTableRows({ nodes, aggregates, search: debouncedSearch, sort })
+  const search = useOrgSearch(aggregates)
+  const rows = useOrgTableRows({ nodes, aggregates, filter: search.filter, sort })
 
   const activeIndex = Math.min(focusedIndex, Math.max(rows.length - 1, 0))
 
@@ -168,12 +162,17 @@ export const OrgTable: FC<Props> = ({ nodes, aggregates, selectedId, liveUpdated
   return (
     <Wrapper>
       <Toolbar>
-        <TextField
-          type="search"
-          value={search}
-          placeholder="Фильтр по названию"
-          aria-label="Фильтр по названию"
-          onChange={(event) => setSearch(event.target.value)}
+        <OrgSearchField
+          query={search.query}
+          resolution={search.resolution}
+          confidence={search.confidence}
+          summary={search.summary}
+          warning={rows.length === 0 ? search.warning : null}
+          isInterpreting={search.isInterpreting}
+          isLlmAvailable={search.isLlmAvailable}
+          requiredEnvVar={search.requiredEnvVar}
+          model={search.model}
+          onQueryChange={search.setQuery}
         />
         <RowCount>
           {formatCount(rows.length)} из {formatCount(nodes.length)}

@@ -1,12 +1,14 @@
+import type { OrgSearchFilter } from '@staff-pulse/api-contract'
 import { useMemo } from 'react'
 
 import type { OrgNodeAggregates, OrgTreeNode } from '@/entities/orgNode'
+import { matchesOrgSearchFilter } from '@/features/orgSearch'
 import type { OrgTableRow, OrgTableSort, OrgTableSortKey } from '@/widgets/orgTable/model'
 
 type Params = {
   nodes: OrgTreeNode[]
   aggregates: OrgNodeAggregates
-  search: string
+  filter: OrgSearchFilter
   sort: OrgTableSort | null
 }
 
@@ -16,7 +18,7 @@ const compareRows = (a: OrgTableRow, b: OrgTableRow, key: OrgTableSortKey): numb
   return a[key] - b[key]
 }
 
-export const useOrgTableRows = ({ nodes, aggregates, search, sort }: Params): OrgTableRow[] => {
+export const useOrgTableRows = ({ nodes, aggregates, filter, sort }: Params): OrgTableRow[] => {
   const rows = useMemo<OrgTableRow[]>(
     () =>
       nodes.map((node) => {
@@ -34,13 +36,7 @@ export const useOrgTableRows = ({ nodes, aggregates, search, sort }: Params): Or
     [nodes, aggregates],
   )
 
-  const filteredRows = useMemo(() => {
-    const query = search.trim().toLowerCase()
-
-    if (query.length === 0) return rows
-
-    return rows.filter((row) => row.name.toLowerCase().includes(query))
-  }, [rows, search])
+  const filteredRows = useMemo(() => rows.filter((row) => matchesOrgSearchFilter(row, filter)), [rows, filter])
 
   return useMemo(() => {
     if (!sort) return filteredRows

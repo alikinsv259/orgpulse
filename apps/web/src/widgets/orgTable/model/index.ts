@@ -1,4 +1,4 @@
-export { ORG_TABLE_COLUMNS, ORG_TABLE_FILTER_DEBOUNCE_MS } from '@/widgets/orgTable/model/consts'
+export { ORG_TABLE_COLUMNS } from '@/widgets/orgTable/model/consts'
 export type {
   OrgTableColumn,
   OrgTableRow,

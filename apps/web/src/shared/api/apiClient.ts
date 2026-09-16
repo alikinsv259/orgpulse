@@ -1,4 +1,4 @@
-import type { ApiErrorResponse, ApiGetRoutes } from '@staff-pulse/api-contract'
+import type { ApiErrorResponse, ApiGetRoutes, ApiPostRoutes } from '@staff-pulse/api-contract'
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios'
 
 import { ApiError, ClientErrorCode } from '@/shared/api/apiError'
@@ -16,9 +16,12 @@ type ArgsFor<R> = Pick<AllArgs<R>, RequiredKeys<AllArgs<R>>> & Partial<Pick<AllA
 
 type GetArgs<P extends keyof ApiGetRoutes> = ArgsFor<ApiGetRoutes[P]>
 
+type PostArgs<P extends keyof ApiPostRoutes> = ArgsFor<ApiPostRoutes[P]>
+
 type NormalizedArgs = {
   query?: Record<string, unknown>
   params?: Record<string, unknown>
+  body?: Record<string, unknown>
 }
 
 type RequestOptions = {
@@ -79,6 +82,22 @@ class ApiClient {
       method: 'GET',
       url: this.buildUrl(urlPattern, params),
       params: query,
+      signal: opts?.signal,
+    })
+  }
+
+  public post<P extends keyof ApiPostRoutes & string>(
+    urlPattern: P,
+    args: PostArgs<P>,
+    opts?: RequestOptions,
+  ): Promise<ApiPostRoutes[P]['response']> {
+    const { query, params, body } = args as NormalizedArgs
+
+    return this.request<ApiPostRoutes[P]['response']>({
+      method: 'POST',
+      url: this.buildUrl(urlPattern, params),
+      params: query,
+      data: body,
       signal: opts?.signal,
     })
   }

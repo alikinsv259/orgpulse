@@ -9,6 +9,7 @@
     "dev": "concurrently -n server,web -c blue,green \"npm:dev:server\" \"npm:dev:web\"",
     "dev:server": "npm run dev --workspace @staff-pulse/server",
     "dev:web": "npm run dev --workspace @org-pulse/web",
+    "build": "npm run build --workspace @staff-pulse/server && npm run build --workspace @org-pulse/web",
     "type-check": "npm run type-check --workspace @staff-pulse/api-contract && npm run type-check --workspace @staff-pulse/server && npm run type-check --workspace @org-pulse/web",
     "lint": "npm run lint --workspace @org-pulse/web"
   },

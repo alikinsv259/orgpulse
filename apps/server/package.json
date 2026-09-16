@@ -1,0 +1,23 @@
+{
+  "name": "@staff-pulse/server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@koa/cors": "5.0.0",
+    "@koa/router": "15.5.0",
+    "@staff-pulse/api-contract": "*",
+    "koa": "3.0.2"
+  },
+  "devDependencies": {
+    "@types/koa": "3.0.2",
+    "@types/koa__cors": "5.0.0",
+    "@types/koa__router": "12.0.4",
+    "@types/node": "^24.13.3",
+    "tsx": "4.20.6",
+    "typescript": "~6.0.2"
+  }
+}

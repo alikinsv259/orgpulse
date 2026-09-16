@@ -1,1 +1,138 @@
-# orgpulse
+# OrgPulse
+
+Дашборд для мониторинга орг-структуры компании: дивизионы → отделы → команды.
+У каждого узла — численность, бюджет и метрика эффективности.
+
+## Стек
+
+| Слой | Технологии |
+|------|------------|
+| Клиент | React 19, Vite, TypeScript, React Query, styled-components, Zod, axios |
+| Сервер | Koa 3, TypeScript, tsx |
+| Контракт | `packages/api-contract` — типы маршрутов + Zod-схемы ответов |
+
+## Запуск
+
+```bash
+npm install
+npm run dev
+```
+
+Одна команда поднимает оба процесса:
+
+- API — http://localhost:4001
+- Клиент — http://localhost:5173
+
+## Переменные окружения
+
+| Переменная | Где | По умолчанию | Назначение |
+|------------|-----|--------------|------------|
+| `PORT` | server | `4001` | Порт API |
+| `CORS_ORIGIN` | server | `http://localhost:5173` | Разрешённый origin клиента |
+| `LATENCY_MS` | server | `1000` | Искусственная задержка ответа, чтобы были видны состояния загрузки. `LATENCY_MS=0` отключает |
+| `VITE_API_URL` | web | `http://localhost:4001` | Базовый URL API |
+
+## API
+
+`GET /api/org-tree` — плоский массив узлов (42 узла, 3 уровня вложенности):
+
+```json
+{
+  "id": "d1-p1-t1",
+  "name": "Ядро",
+  "parentId": "d1-p1",
+  "headcount": 8,
+  "budget": 8993000,
+  "performance": 83,
+  "updatedAt": "2026-09-14T14:00:14.180Z"
+}
+```
+
+Ошибки отдаются единым конвертом:
+
+```json
+{ "error": { "code": "NOT_FOUND", "message": "Route GET /api/nope not found" } }
+```
+
+Данные детерминированы: сервер строит их из фиксированного сида, поэтому перезапуск
+не меняет ответ — кэш на клиенте инвалидируется только при реальном изменении данных.
+
+## Структура репозитория
+
+```text
+apps/
+  server/            Koa API — 5 файлов, без модульности
+    src/config.ts    ENV
+    src/errors.ts    AppError + errorHandler → { error: { code, message } }
+    src/orgData.ts   детерминированный сид орг-структуры
+    src/routes.ts    GET /api/org-tree
+    src/index.ts     бутстрап
+  web/               клиент, Feature-Sliced Design
+    src/app/         провайдеры (React Query, ThemeProvider, GlobalStyle)
+    src/views/       страницы (dashboard)
+    src/widgets/     крупные блоки (orgTree)
+    src/entities/    доменные сущности + data-access хуки (orgNode)
+    src/shared/      apiClient, ApiError, queryClient, тема, UI-примитивы
+packages/
+  api-contract/      @staff-pulse/api-contract — общий контракт
+```
+
+Правило импортов FSD: `shared → entities → widgets → views`, обратные импорты запрещены.
+
+Относительных импортов в проекте нет — всё через алиасы:
+
+| Алиас | Куда ведёт | Где настроен |
+|-------|------------|--------------|
+| `@/*` | `apps/web/src/*` | `apps/web/tsconfig.app.json`, `vite.config.ts` |
+| `~/*` | `apps/server/src/*` | `apps/server/tsconfig.json` |
+| `@contract/*` | `packages/api-contract/src/*` | tsconfig всех трёх пакетов + `vite.config.ts` |
+| `@staff-pulse/api-contract` | публичный баррель контракта | npm workspace + `vite.config.ts` |
+
+`@contract/*` нужен потому, что `@/*` уже занят вебом, а алиасы Vite глобальны на сборку:
+внутри контракта `@/…` резолвился бы в `apps/web/src`. Прикладной код импортирует контракт
+по имени пакета, `@contract/*` — только его собственные внутренние импорты.
+
+## Ключевые решения
+
+- **Контракт в отдельном пакете.** `RouteDef`-мапа маршрутов типизирует `apiClient.get`:
+  URL и тип ответа связаны на уровне типов, руками ничего не дублируется.
+  Пакет потребляется из исходников (`exports → ./src/index.ts`), без шага сборки.
+- **Валидация только на клиенте.** Сервер оперирует типами, клиент прогоняет ответ через
+  `GetOrgTreeResponseSchema`; несоответствие превращается в `ApiError` с кодом
+  `INVALID_RESPONSE` и рисует состояние ошибки, а не падает на рендере.
+- **Кэш — React Query.** `staleTime` 5 с даёт stale-while-revalidate: повторный заход
+  берёт данные из кэша и обновляет их в фоне. Ретраи выключены для 4xx.
+- **Отмена запросов.** `queryFn` прокидывает `signal` из React Query в axios, поэтому
+  размонтирование компонента отменяет HTTP-запрос.
+- **Ошибки как в проде.** Сервер отдаёт `{ error: { code, message } }`, интерсептор axios
+  превращает это в `ApiError { code, message, status }`, тексты для пользователя
+  определяются на клиенте по коду — бэкендовые сообщения в UI не протекают.
+- **Никакого inline-CSS.** Вся стилизация — styled-components и одна тема.
+
+## AI в разработке
+
+**Что генерировалось Claude Code:**
+
+- Скелет репозитория: npm workspaces, tsconfig'и, алиасы, конфиг Vite.
+- Пакет `api-contract` целиком: `RouteDef`, Zod-схемы, баррели.
+- Сервер целиком: Koa-бутстрап, `AppError` + `errorHandler`, детерминированный сид.
+- Клиентский каркас FSD: `apiClient`/`ApiError`, `queryClient`, тема, UI-примитивы,
+  `useOrgTreeQuery`, `buildOrgTree`, дерево и страница дашборда.
+
+**Что правилось руками и почему:**
+
+- _(заполнить по ходу работы)_
+
+**Как использовался инструмент:**
+
+- Конвенции проекта заданы заранее (контракт в пакете, FSD, React Query, styled-components,
+  формат ошибок), модель применяла их, а не изобретала свои.
+- Каждый этап проверялся `npm run type-check`, `npm run lint`, сборкой и curl'ом по API —
+  результат генерации принимался только после зелёных проверок.
+
+## Этапы
+
+- [x] **01 FOUNDATION** — проект, API, дерево
+- [ ] **02 CORE** — аналитическая таблица
+- [ ] **03 POLISH** — live-обновления и UX
+- [ ] **04 BONUS** — Docker/Nginx + AI-поиск

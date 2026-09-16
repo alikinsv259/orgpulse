@@ -3,13 +3,13 @@ services:
     build:
       context: .
       dockerfile: apps/server/Dockerfile
-    env_file:
-      - path: .env
-        required: false
-      - path: apps/server/.env
-        required: false
     environment:
       PORT: 4001
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8080}
+      LATENCY_MS: ${LATENCY_MS:-0}
+      LIVE_INTERVAL_MS: ${LIVE_INTERVAL_MS:-3000}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      AI_SEARCH_MODEL: ${AI_SEARCH_MODEL:-gpt-4o-mini}
     expose:
       - "4001"
     restart: unless-stopped

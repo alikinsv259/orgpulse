@@ -7,4 +7,5 @@ export const env = {
   PORT: toInt(process.env.PORT, 4001),
   CORS_ORIGIN: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
   LATENCY_MS: toInt(process.env.LATENCY_MS, 1000),
+  LIVE_INTERVAL_MS: toInt(process.env.LIVE_INTERVAL_MS, 3000),
 }

@@ -35,3 +35,5 @@ export const theme = {
 }
 
 export type AppTheme = typeof theme
+
+export type ThemeTone = 'good' | 'warn' | 'bad'

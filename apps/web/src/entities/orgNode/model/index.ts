@@ -9,6 +9,7 @@ export { orgNodeQueryKeys } from '@/entities/orgNode/model/queryKeys'
 export type {
   OrgNodeAggregate,
   OrgNodeAggregates,
+  OrgSnapshot,
   OrgTreeNode,
   PerformanceTone,
 } from '@/entities/orgNode/model/types'

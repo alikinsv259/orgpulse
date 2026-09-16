@@ -1,9 +1,10 @@
 import { type FC, useState } from 'react'
 import styled from 'styled-components'
 
-import { getOrgTreeErrorMessage, useOrgTreeQuery } from '@/entities/orgNode'
+import { getOrgTreeErrorMessage, useOrgTree } from '@/entities/orgNode'
+import { useLiveStatus } from '@/shared/api'
 import { formatCount, useMediaQuery } from '@/shared/lib'
-import { Button, Card, EmptyState, ErrorState, SegmentedControl, Spinner } from '@/shared/ui'
+import { Button, Card, ConnectionStatus, EmptyState, ErrorState, SegmentedControl, Spinner } from '@/shared/ui'
 import { DASHBOARD_VIEW_OPTIONS, type DashboardView, SPLIT_VIEW_MEDIA_QUERY } from '@/views/dashboard/model'
 import { OrgTable } from '@/widgets/orgTable'
 import { OrgTree, useTreeExpansion } from '@/widgets/orgTree'
@@ -75,7 +76,10 @@ const PaneHeader = styled.h2`
 `
 
 export const DashboardPage: FC = () => {
-  const { data, tree, flatNodes, aggregates, isPending, isError, error, isFetching, refetch } = useOrgTreeQuery()
+  const { data, tree, flatNodes, aggregates, liveUpdatedIds, isPending, isError, error, isFetching, refetch } =
+    useOrgTree()
+
+  const liveStatus = useLiveStatus()
 
   const [view, setView] = useState<DashboardView>('tree')
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -130,6 +134,7 @@ export const DashboardPage: FC = () => {
           tree={tree}
           expandedIds={expandedIds}
           selectedId={selectedId}
+          liveUpdatedIds={liveUpdatedIds}
           onToggle={toggleNode}
           onSelect={handleSelect}
         />
@@ -143,6 +148,7 @@ export const DashboardPage: FC = () => {
           nodes={flatNodes}
           aggregates={aggregates}
           selectedId={selectedId}
+          liveUpdatedIds={liveUpdatedIds}
           onSelect={handleSelectFromTable}
         />
       </Pane>
@@ -179,6 +185,7 @@ export const DashboardPage: FC = () => {
         </div>
 
         <Toolbar>
+          <ConnectionStatus status={liveStatus} />
           {data ? <NodeCount>{formatCount(data.length)} подразделений</NodeCount> : null}
           <Button type="button" onClick={() => void refetch()} disabled={isFetching}>
             {isFetching ? 'Обновляем…' : 'Обновить'}

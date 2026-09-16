@@ -3,6 +3,7 @@ import styled from 'styled-components'
 
 import { ORG_NODE_LEVEL_LABELS, type OrgTreeNode as OrgTreeNodeType, PerformanceDot } from '@/entities/orgNode'
 import { formatCount } from '@/shared/lib'
+import { HighlightOnChange } from '@/shared/ui'
 
 const Item = styled.li`
   list-style: none;
@@ -38,7 +39,7 @@ const ToggleButton = styled.button<{ $isExpanded: boolean; $isHidden: boolean }>
   cursor: pointer;
   visibility: ${({ $isHidden }) => ($isHidden ? 'hidden' : 'visible')};
   transform: rotate(${({ $isExpanded }) => ($isExpanded ? '90deg' : '0deg')});
-  transition: transform ${({ theme }) => theme.transition.fast};
+  transition: transform ${({ theme }) => theme.transition.medium};
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
@@ -82,6 +83,21 @@ const Headcount = styled.span`
   font-variant-numeric: tabular-nums;
 `
 
+const Collapse = styled.div<{ $isExpanded: boolean }>`
+  display: grid;
+  grid-template-rows: ${({ $isExpanded }) => ($isExpanded ? '1fr' : '0fr')};
+  transition: grid-template-rows ${({ theme }) => theme.transition.medium};
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+`
+
+const CollapseInner = styled.div`
+  min-height: 0;
+  overflow: hidden;
+`
+
 const Group = styled.ul`
   margin: 0;
   padding: 0;
@@ -91,14 +107,23 @@ type Props = {
   node: OrgTreeNodeType
   expandedIds: Set<string>
   selectedId: string | null
+  liveUpdatedIds: Set<string>
   onToggle: (id: string) => void
   onSelect: (id: string) => void
 }
 
-export const OrgTreeNode: FC<Props> = ({ node, expandedIds, selectedId, onToggle, onSelect }) => {
+export const OrgTreeNode: FC<Props> = ({
+  node,
+  expandedIds,
+  selectedId,
+  liveUpdatedIds,
+  onToggle,
+  onSelect,
+}) => {
   const hasChildren = node.children.length > 0
   const isExpanded = hasChildren && expandedIds.has(node.id)
   const isSelected = node.id === selectedId
+  const isLive = liveUpdatedIds.has(node.id)
 
   const rowRef = useRef<HTMLDivElement>(null)
 
@@ -123,24 +148,35 @@ export const OrgTreeNode: FC<Props> = ({ node, expandedIds, selectedId, onToggle
         <SelectButton type="button" onClick={() => onSelect(node.id)}>
           <Name>{node.name}</Name>
           <LevelLabel>{ORG_NODE_LEVEL_LABELS[node.level] ?? `Уровень ${node.level}`}</LevelLabel>
-          <Headcount>{formatCount(node.headcount)}</Headcount>
-          <PerformanceDot performance={node.performance} />
+          <Headcount>
+            <HighlightOnChange value={node.headcount} isEnabled={isLive}>
+              {formatCount(node.headcount)}
+            </HighlightOnChange>
+          </Headcount>
+          <HighlightOnChange value={node.performance} isEnabled={isLive}>
+            <PerformanceDot performance={node.performance} />
+          </HighlightOnChange>
         </SelectButton>
       </Row>
 
-      {isExpanded ? (
-        <Group role="group">
-          {node.children.map((child) => (
-            <OrgTreeNode
-              key={child.id}
-              node={child}
-              expandedIds={expandedIds}
-              selectedId={selectedId}
-              onToggle={onToggle}
-              onSelect={onSelect}
-            />
-          ))}
-        </Group>
+      {hasChildren ? (
+        <Collapse $isExpanded={isExpanded} inert={!isExpanded}>
+          <CollapseInner>
+            <Group role="group">
+              {node.children.map((child) => (
+                <OrgTreeNode
+                  key={child.id}
+                  node={child}
+                  expandedIds={expandedIds}
+                  selectedId={selectedId}
+                  liveUpdatedIds={liveUpdatedIds}
+                  onToggle={onToggle}
+                  onSelect={onSelect}
+                />
+              ))}
+            </Group>
+          </CollapseInner>
+        </Collapse>
       ) : null}
     </Item>
   )

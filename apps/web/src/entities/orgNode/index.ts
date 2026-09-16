@@ -1,9 +1,12 @@
-export { useOrgTreeQuery } from '@/entities/orgNode/hooks'
+export { useOrgTree, useOrgTreeLiveUpdates, useOrgTreeQuery } from '@/entities/orgNode/hooks'
 export {
   aggregateOrgTree,
+  applyOrgNodePatch,
   buildOrgTree,
+  createOrgSnapshot,
   flattenOrgTree,
   getAncestorIds,
+  getNodePathIds,
   getOrgTreeErrorMessage,
   getPerformanceTone,
 } from '@/entities/orgNode/lib'
@@ -16,6 +19,7 @@ export {
 export type {
   OrgNodeAggregate,
   OrgNodeAggregates,
+  OrgSnapshot,
   OrgTreeNode,
   PerformanceTone,
 } from '@/entities/orgNode/model'

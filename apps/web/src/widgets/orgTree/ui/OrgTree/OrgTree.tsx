@@ -16,11 +16,12 @@ type Props = {
   tree: OrgTreeNodeType[]
   expandedIds: Set<string>
   selectedId: string | null
+  liveUpdatedIds: Set<string>
   onToggle: (id: string) => void
   onSelect: (id: string) => void
 }
 
-export const OrgTree: FC<Props> = ({ tree, expandedIds, selectedId, onToggle, onSelect }) => (
+export const OrgTree: FC<Props> = ({ tree, expandedIds, selectedId, liveUpdatedIds, onToggle, onSelect }) => (
   <Root role="tree" aria-label="Орг-структура компании">
     {tree.map((node) => (
       <OrgTreeNode
@@ -28,6 +29,7 @@ export const OrgTree: FC<Props> = ({ tree, expandedIds, selectedId, onToggle, on
         node={node}
         expandedIds={expandedIds}
         selectedId={selectedId}
+        liveUpdatedIds={liveUpdatedIds}
         onToggle={onToggle}
         onSelect={onSelect}
       />

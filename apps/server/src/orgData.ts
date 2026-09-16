@@ -1,4 +1,4 @@
-import type { OrgNode } from '@staff-pulse/api-contract'
+import type { OrgNode, OrgNodePatch } from '@staff-pulse/api-contract'
 
 type DepartmentSpec = { name: string; teams: string[] }
 type DivisionSpec = { name: string; departments: DepartmentSpec[] }
@@ -87,6 +87,34 @@ const buildOrgNodes = (): OrgNode[] => {
   return nodes
 }
 
+const DEFAULT_BUDGET_PER_HEAD = 1_200_000
+const MAX_HEADCOUNT_DELTA = 3
+const MAX_PERFORMANCE_DELTA = 8
+
 const orgNodes = buildOrgNodes()
 
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
+
+const randomInt = (min: number, max: number) => min + Math.floor(Math.random() * (max - min + 1))
+
 export const getOrgNodes = (): OrgNode[] => orgNodes
+
+export const mutateRandomNode = (): OrgNodePatch => {
+  const node = orgNodes[randomInt(0, orgNodes.length - 1)]
+
+  const budgetPerHead = node.headcount > 0 ? Math.round(node.budget / node.headcount) : DEFAULT_BUDGET_PER_HEAD
+  const headcountDelta = randomInt(-MAX_HEADCOUNT_DELTA, MAX_HEADCOUNT_DELTA)
+
+  node.headcount = Math.max(0, node.headcount + headcountDelta)
+  node.budget = Math.max(0, node.budget + headcountDelta * budgetPerHead)
+  node.performance = clamp(node.performance + randomInt(-MAX_PERFORMANCE_DELTA, MAX_PERFORMANCE_DELTA), 0, 100)
+  node.updatedAt = new Date().toISOString()
+
+  return {
+    id: node.id,
+    headcount: node.headcount,
+    budget: node.budget,
+    performance: node.performance,
+    updatedAt: node.updatedAt,
+  }
+}

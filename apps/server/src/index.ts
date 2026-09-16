@@ -3,6 +3,7 @@ import Koa from 'koa'
 
 import { env } from '~/config'
 import { AppError, errorHandler } from '~/errors'
+import { startLiveUpdates } from '~/live'
 import { router } from '~/routes'
 
 const app = new Koa()
@@ -15,6 +16,8 @@ app.use(async (ctx) => {
   throw AppError.notFound({ message: `Route ${ctx.method} ${ctx.path} not found` })
 })
 
-app.listen(env.PORT, () => {
+const server = app.listen(env.PORT, () => {
   console.log(`[server] listening on http://localhost:${env.PORT}`)
 })
+
+startLiveUpdates(server)

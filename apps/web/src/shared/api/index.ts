@@ -1,3 +1,6 @@
 export { apiClient } from '@/shared/api/apiClient'
 export { ApiError, ClientErrorCode, isApiError, isClientError } from '@/shared/api/apiError'
 export type { ApiErrorCode } from '@/shared/api/apiError'
+export { liveClient } from '@/shared/api/liveClient'
+export type { LiveStatus } from '@/shared/api/liveClient'
+export { useLiveStatus } from '@/shared/api/useLiveStatus'

@@ -27,6 +27,7 @@ export const aggregateOrgTree = (tree: OrgTreeNode[]): OrgNodeAggregates => {
     aggregates.set(node.id, {
       totalHeadcount: totals.headcount,
       totalBudget: totals.budget,
+      weightedPerformance: totals.weightedPerformance,
       averagePerformance: totals.headcount === 0 ? 0 : totals.weightedPerformance / totals.headcount,
     })
 

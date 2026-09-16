@@ -2,9 +2,7 @@ import { GetOrgTreeResponseSchema } from '@staff-pulse/api-contract'
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 
-import { aggregateOrgTree } from '@/entities/orgNode/lib/aggregateOrgTree'
-import { buildOrgTree } from '@/entities/orgNode/lib/buildOrgTree'
-import { flattenOrgTree } from '@/entities/orgNode/lib/flattenOrgTree'
+import { createOrgSnapshot } from '@/entities/orgNode/lib/createOrgSnapshot'
 import { ORG_TREE_STALE_TIME_MS } from '@/entities/orgNode/model/consts'
 import { orgNodeQueryKeys } from '@/entities/orgNode/model/queryKeys'
 import { ApiError, ClientErrorCode, apiClient } from '@/shared/api'
@@ -30,11 +28,7 @@ export const useOrgTreeQuery = () => {
 
   const { data } = query
 
-  const tree = useMemo(() => buildOrgTree(data ?? []), [data])
+  const snapshot = useMemo(() => createOrgSnapshot(data ?? []), [data])
 
-  const flatNodes = useMemo(() => flattenOrgTree(tree), [tree])
-
-  const aggregates = useMemo(() => aggregateOrgTree(tree), [tree])
-
-  return { ...query, tree, flatNodes, aggregates }
+  return { ...query, snapshot }
 }

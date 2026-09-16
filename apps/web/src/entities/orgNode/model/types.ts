@@ -6,3 +6,11 @@ export type OrgTreeNode = OrgNode & {
 }
 
 export type PerformanceTone = 'good' | 'warn' | 'bad'
+
+export type OrgNodeAggregate = {
+  totalHeadcount: number
+  totalBudget: number
+  averagePerformance: number
+}
+
+export type OrgNodeAggregates = Map<string, OrgNodeAggregate>

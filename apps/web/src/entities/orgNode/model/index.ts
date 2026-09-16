@@ -6,4 +6,9 @@ export {
   PERFORMANCE_WARN_THRESHOLD,
 } from '@/entities/orgNode/model/consts'
 export { orgNodeQueryKeys } from '@/entities/orgNode/model/queryKeys'
-export type { OrgTreeNode, PerformanceTone } from '@/entities/orgNode/model/types'
+export type {
+  OrgNodeAggregate,
+  OrgNodeAggregates,
+  OrgTreeNode,
+  PerformanceTone,
+} from '@/entities/orgNode/model/types'

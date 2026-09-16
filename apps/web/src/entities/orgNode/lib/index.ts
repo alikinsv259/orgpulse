@@ -1,3 +1,6 @@
+export { aggregateOrgTree } from '@/entities/orgNode/lib/aggregateOrgTree'
 export { buildOrgTree } from '@/entities/orgNode/lib/buildOrgTree'
+export { flattenOrgTree } from '@/entities/orgNode/lib/flattenOrgTree'
+export { getAncestorIds } from '@/entities/orgNode/lib/getAncestorIds'
 export { getOrgTreeErrorMessage } from '@/entities/orgNode/lib/getOrgTreeErrorMessage'
 export { getPerformanceTone } from '@/entities/orgNode/lib/getPerformanceTone'

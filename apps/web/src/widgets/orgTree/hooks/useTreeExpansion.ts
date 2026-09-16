@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 
-import { DEFAULT_EXPANDED_DEPTH, type OrgTreeNode } from '@/entities/orgNode'
+import { DEFAULT_EXPANDED_DEPTH, getAncestorIds, type OrgTreeNode } from '@/entities/orgNode'
 
 const collectDefaultExpandedIds = (nodes: OrgTreeNode[], maxLevel: number): Set<string> => {
   const ids = new Set<string>()
@@ -33,9 +33,32 @@ export const useTreeExpansion = (tree: OrgTreeNode[]) => {
     return ids
   }, [defaultExpandedIds, overrides])
 
-  const toggleNode = useCallback((id: string) => {
-    setOverrides((prev) => ({ ...prev, [id]: !(prev[id] ?? defaultExpandedIds.has(id)) }))
-  }, [defaultExpandedIds])
+  const toggleNode = useCallback(
+    (id: string) => {
+      setOverrides((prev) => ({ ...prev, [id]: !(prev[id] ?? defaultExpandedIds.has(id)) }))
+    },
+    [defaultExpandedIds],
+  )
 
-  return { expandedIds, toggleNode }
+  const expandAncestors = useCallback(
+    (nodeId: string) => {
+      const ancestorIds = getAncestorIds(tree, nodeId)
+
+      if (ancestorIds.length === 0) return
+
+      setOverrides((prev) => {
+        const collapsedIds = ancestorIds.filter((id) => prev[id] !== true)
+
+        if (collapsedIds.length === 0) return prev
+
+        const next = { ...prev }
+        for (const id of collapsedIds) next[id] = true
+
+        return next
+      })
+    },
+    [tree],
+  )
+
+  return { expandedIds, toggleNode, expandAncestors }
 }
